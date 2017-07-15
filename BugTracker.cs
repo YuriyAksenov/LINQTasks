@@ -40,7 +40,7 @@ namespace LINQTasks
         /// </summary>
         public IEnumerable<Bug> GetOpenBugs(Priority priority)
         {
-            return Bugs.Where(x => x.Status != Status.Closed && x.Priority > Priority.Minor);
+            return Bugs.Where(x => x.Status != Status.Closed && x.Priority >= priority);
         }
 
         /// <summary>
@@ -82,11 +82,17 @@ namespace LINQTasks
         /// </summary>
         public IEnumerable<User> GetFreeUsers()
         {
-            return from u in Users
-                   where u != (from b in Bugs
-                               group Bugs by b.AssignedTo into g
-                               select g.Key)
-                   select u;
+            return from user in Users
+                   join bug in Bugs on user equals bug.AssignedTo
+                   into userBugs
+                   where !userBugs.Any()
+                   select user;
+
+            //return from u in Users
+            //       where u != (from b in Bugs
+            //                   group Bugs by b.AssignedTo into g
+            //                   select g.Key)
+            //       select u;
         }
 
         /// <summary>
@@ -95,8 +101,12 @@ namespace LINQTasks
         /// </summary>
         public IEnumerable<Tuple<User, IEnumerable<Bug>>> GetUsersBugs()
         {
-            return from u in Users
-                   select new Tuple<User, IEnumerable<Bug>>(u, from b in Bugs where b.AssignedTo == u select b);
+            return from user in Users
+                   join bug in Bugs on user equals bug.AssignedTo
+                   into userBugs
+                   select new Tuple<User, IEnumerable<Bug>>(user, userBugs);
+            //return from u in Users
+            //       select new Tuple<User, IEnumerable<Bug>>(u, from b in Bugs where b.AssignedTo == u select b);
         }
 
         /// <summary>
